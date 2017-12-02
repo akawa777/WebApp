@@ -1,0 +1,22 @@
+<div>
+    <div class="row header">        
+        <div class="col-sm-12">
+            <slot name="header"></slot>
+        </div>
+    </div>
+    <br />
+    <div class="row body">
+        <div class="col-sm-8 auto-height">
+            <slot name="list"></slot>
+        </div>
+        <div class="col-sm-4 auto-height">
+            <slot name="detail"></slot>
+        </div>
+    </div>
+    <br />
+    <div class="row footer">        
+        <div class="col-sm-12">
+            <slot name="footer"></slot>
+        </div>
+    </div>
+</div>

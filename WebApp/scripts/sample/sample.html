@@ -1,0 +1,57 @@
+<list-detail-frame>
+    <template slot="header">
+        <el-button v-on:click="dialogVisible = true">filter</el-button>
+        <el-dialog
+        title="filter"
+        v-bind:visible.sync="dialogVisible"
+        width="50%">            
+            <el-form label-width="100px">
+                <el-form-item label="id">                    
+                    <el-input v-model="filter.id"></el-input>
+                </el-form-item>                
+                <el-form-item label="like name">
+                    <el-input v-model="filter.name"></el-input>
+                </el-form-item>       
+            </el-form>
+            <template slot="footer" class="dialog-footer">     
+                <el-button v-on:click="dialogVisible = false">Cancel</el-button>
+                <el-button type="primary" @click="fetchItems">Confirm</el-button>       
+            </template>
+        </el-dialog>
+        <el-button type="primary" v-on:click="createNew">new</el-button>
+    </template>
+
+    <template slot="list">
+        <el-table
+            :data="items">
+            <el-table-column>
+                <el-button type="primary" slot-scope="scope" v-on:click="edit(scope.row)">edit</el-button>       
+            </el-table-column>
+            <el-table-column
+                prop="id"
+                label="id">
+            </el-table-column>
+            <el-table-column
+                prop="name"
+                label="name">
+            </el-table-column>
+        </el-table>        
+    </template>
+
+    <template slot="detail">
+        <el-form label-width="100px">
+            <el-form-item label="id">                    
+                {{currentItem.id}}
+            </el-form-item>                
+            <el-form-item label="name">
+                <el-input v-model="currentItem.name"></el-input>
+            </el-form-item>       
+        </el-form>        
+    </template>
+
+    <template slot="footer">
+        <el-button type="primary" v-on:click="regist">regist</el-button>
+        <el-button>output</el-button>
+        <el-button type="danger" v-on:click="remove">remove</el-button>
+    </template>
+</list-detail-frame>
