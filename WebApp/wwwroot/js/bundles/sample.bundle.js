@@ -303,7 +303,7 @@ function deepMerge(target, source) {
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* WEBPACK VAR INJECTION */(function(process, global, setImmediate) {/*!
- * Vue.js v2.5.8
+ * Vue.js v2.5.9
  * (c) 2014-2017 Evan You
  * Released under the MIT License.
  */
@@ -1019,9 +1019,9 @@ var VNode = function VNode (
   this.elm = elm;
   this.ns = undefined;
   this.context = context;
-  this.functionalContext = undefined;
-  this.functionalOptions = undefined;
-  this.functionalScopeId = undefined;
+  this.fnContext = undefined;
+  this.fnOptions = undefined;
+  this.fnScopeId = undefined;
   this.key = data && data.key;
   this.componentOptions = componentOptions;
   this.componentInstance = undefined;
@@ -1080,6 +1080,9 @@ function cloneVNode (vnode, deep) {
   cloned.isStatic = vnode.isStatic;
   cloned.key = vnode.key;
   cloned.isComment = vnode.isComment;
+  cloned.fnContext = vnode.fnContext;
+  cloned.fnOptions = vnode.fnOptions;
+  cloned.fnScopeId = vnode.fnScopeId;
   cloned.isCloned = true;
   if (deep) {
     if (vnode.children) {
@@ -2826,7 +2829,7 @@ function resolveSlots (
     }
     // named slots should only be respected if the vnode was rendered in the
     // same context.
-    if ((child.context === context || child.functionalContext === context) &&
+    if ((child.context === context || child.fnContext === context) &&
       data && data.slot != null
     ) {
       var name = child.data.slot;
@@ -3046,7 +3049,10 @@ function mountComponent (
     };
   }
 
-  vm._watcher = new Watcher(vm, updateComponent, noop);
+  // we set this to vm._watcher inside the watcher's constructor
+  // since the watcher's initial patch may call $forceUpdate (e.g. inside child
+  // component's mounted hook), which relies on vm._watcher being already defined
+  new Watcher(vm, updateComponent, noop, null, true /* isRenderWatcher */);
   hydrating = false;
 
   // manually mounted instance, call mounted on self
@@ -3333,9 +3339,13 @@ var Watcher = function Watcher (
   vm,
   expOrFn,
   cb,
-  options
+  options,
+  isRenderWatcher
 ) {
   this.vm = vm;
+  if (isRenderWatcher) {
+    vm._watcher = this;
+  }
   vm._watchers.push(this);
   // options
   if (options) {
@@ -4246,8 +4256,8 @@ function FunctionalRenderContext (
     this._c = function (a, b, c, d) {
       var vnode = createElement(contextVm, a, b, c, d, needNormalization);
       if (vnode) {
-        vnode.functionalScopeId = options._scopeId;
-        vnode.functionalContext = parent;
+        vnode.fnScopeId = options._scopeId;
+        vnode.fnContext = parent;
       }
       return vnode
     };
@@ -4288,8 +4298,8 @@ function createFunctionalComponent (
   var vnode = options.render.call(null, renderContext._c, renderContext);
 
   if (vnode instanceof VNode) {
-    vnode.functionalContext = contextVm;
-    vnode.functionalOptions = options;
+    vnode.fnContext = contextVm;
+    vnode.fnOptions = options;
     if (data.slot) {
       (vnode.data || (vnode.data = {})).slot = data.slot;
     }
@@ -5124,7 +5134,7 @@ function pruneCacheEntry (
   current
 ) {
   var cached$$1 = cache[key];
-  if (cached$$1 && cached$$1 !== current) {
+  if (cached$$1 && (!current || cached$$1.tag !== current.tag)) {
     cached$$1.componentInstance.$destroy();
   }
   cache[key] = null;
@@ -5275,7 +5285,7 @@ Object.defineProperty(Vue$3.prototype, '$ssrContext', {
   }
 });
 
-Vue$3.version = '2.5.8';
+Vue$3.version = '2.5.9';
 
 /*  */
 
@@ -5874,7 +5884,7 @@ function createPatchFunction (backend) {
   // of going through the normal attribute patching process.
   function setScope (vnode) {
     var i;
-    if (isDef(i = vnode.functionalScopeId)) {
+    if (isDef(i = vnode.fnScopeId)) {
       nodeOps.setAttribute(vnode.elm, i, '');
     } else {
       var ancestor = vnode;
@@ -5888,7 +5898,7 @@ function createPatchFunction (backend) {
     // for slot content they should also get the scopeId from the host instance.
     if (isDef(i = activeInstance) &&
       i !== vnode.context &&
-      i !== vnode.functionalContext &&
+      i !== vnode.fnContext &&
       isDef(i = i.$options._scopeId)
     ) {
       nodeOps.setAttribute(vnode.elm, i, '');
@@ -6478,7 +6488,7 @@ function updateAttrs (oldVnode, vnode) {
   // #4391: in IE9, setting type can reset value for input[type=radio]
   // #6666: IE/Edge forces progress value down to 1 before setting a max
   /* istanbul ignore if */
-  if ((isIE9 || isEdge) && attrs.value !== oldAttrs.value) {
+  if ((isIE || isEdge) && attrs.value !== oldAttrs.value) {
     setAttr(elm, 'value', attrs.value);
   }
   for (key in oldAttrs) {
@@ -6518,6 +6528,23 @@ function setAttr (el, key, value) {
     if (isFalsyAttrValue(value)) {
       el.removeAttribute(key);
     } else {
+      // #7138: IE10 & 11 fires input event when setting placeholder on
+      // <textarea>... block the first input event and remove the blocker
+      // immediately.
+      /* istanbul ignore if */
+      if (
+        isIE && !isIE9 &&
+        el.tagName === 'TEXTAREA' &&
+        key === 'placeholder' && !el.__ieph
+      ) {
+        var blocker = function (e) {
+          e.stopImmediatePropagation();
+          el.removeEventListener('input', blocker);
+        };
+        el.addEventListener('input', blocker);
+        // $flow-disable-line
+        el.__ieph = true; /* IE placeholder patched */
+      }
       el.setAttribute(key, value);
     }
   }
@@ -9132,7 +9159,8 @@ function parseHTML (html, options) {
 var onRE = /^@|^v-on:/;
 var dirRE = /^v-|^@|^:/;
 var forAliasRE = /(.*?)\s+(?:in|of)\s+(.*)/;
-var forIteratorRE = /\((\{[^}]*\}|[^,]*),([^,]*)(?:,([^,]*))?\)/;
+var forIteratorRE = /\((\{[^}]*\}|[^,{]*),([^,]*)(?:,([^,]*))?\)/;
+var stripParensRE = /^\(|\)$/g;
 
 var argRE = /:(.*)$/;
 var bindRE = /^:|^v-bind:/;
@@ -9473,7 +9501,7 @@ function processFor (el) {
         el.iterator2 = iteratorMatch[3].trim();
       }
     } else {
-      el.alias = alias;
+      el.alias = alias.replace(stripParensRE, '');
     }
   }
 }
@@ -14966,14 +14994,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
             __WEBPACK_IMPORTED_MODULE_0_vue__["default"].use(__WEBPACK_IMPORTED_MODULE_3_element_ui___default.a);
             Item = /** @class */ (function () {
                 function Item() {
-                    this.id = null;
+                    this.id = 0;
                     this.name = '';
                 }
                 return Item;
             }());
             Filter = /** @class */ (function () {
                 function Filter() {
-                    this.id = null;
+                    this.id = 0;
                     this.name = '';
                 }
                 return Filter;
@@ -14989,77 +15017,183 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
                     currentItem: new Item(),
                     items: new Array(),
                     dialogVisible: false,
-                    filter: new Filter()
+                    filter: new Filter(),
+                    pages: [1, 2, 3],
+                    currentPage: 1,
+                    outputDialog: false,
+                    selectedLayoutCd: '0001',
+                    layoutCodes: ['0001', '0002', '0003'],
+                    listHeight: 0,
+                    detailStyle: {
+                        height: '0px',
+                        overflow: 'auto'
+                    },
+                    detailRules: {
+                        name: [
+                            { required: true, message: 'please input name', trigger: 'blur' }
+                        ]
+                    }
                 },
                 mounted: function () {
                     for (var i = 0; i < 10; i++) {
                         var item = new Item();
-                        item.id = i + 1;
+                        item.id = i + 101;
                         item.name = "name_" + item.id;
                         this.allItems.push(item);
                         this.items.push(item);
                     }
+                    this.setListHeigth();
+                    this.setDetailHeigth();
+                },
+                computed: {
+                    maxPage: function () {
+                        return this.pages[this.pages.length - 1];
+                    }
                 },
                 methods: {
+                    clearFilter: function () {
+                        this.filter.id = 0;
+                        this.filter.name = '';
+                    },
+                    setListHeigth: function () {
+                        var _this = this;
+                        setInterval(function () {
+                            var el = document.querySelector('.auto-height');
+                            if (el.style.height)
+                                _this.listHeight = parseInt(el.style.height) - 70;
+                        }, 500);
+                    },
+                    setDetailHeigth: function () {
+                        var _this = this;
+                        setInterval(function () {
+                            var el = document.querySelector('.auto-height');
+                            if (el.style.height)
+                                _this.detailStyle.height = parseInt(el.style.height) - 70 + "px";
+                        }, 500);
+                    },
+                    getPageName: function (page) {
+                        return page + " page";
+                    },
+                    getLayoutName: function (layoutCode) {
+                        return layoutCode + " layout";
+                    },
                     createNew: function () {
+                        this.showLoding();
                         this.resetCurrentItem();
                     },
                     edit: function (item) {
+                        this.showLoding();
                         this.currentItem.id = item.id;
                         this.currentItem.name = item.name;
                     },
-                    regist: function () {
-                        var _this = this;
-                        if (this.currentItem.id) {
-                            var item = this.items.find(function (x) { return x.id == _this.currentItem.id; });
-                            if (item) {
-                                item.name = this.currentItem.name;
-                            }
-                        }
-                        else {
-                            var newItem = new Item();
-                            if (this.items.length == 0) {
-                                newItem.id = 1;
-                            }
-                            else {
-                                newItem.id = this.items[this.items.length - 1].id + 1;
-                            }
-                            newItem.name = this.currentItem.name;
-                            this.allItems.push(newItem);
-                            this.items.push(newItem);
-                            this.currentItem.id = newItem.id;
-                        }
+                    register: function () {
+                        return __awaiter(this, void 0, void 0, function () {
+                            var _this = this;
+                            var valid, ok, item, newItem;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, this.$refs.detailForm.validate().catch(function () { })];
+                                    case 1:
+                                        valid = _a.sent();
+                                        if (!valid)
+                                            return [2 /*return*/];
+                                        return [4 /*yield*/, this.$confirm('do you want to register?', 'Confirm', {
+                                                confirmButtonText: 'OK',
+                                                cancelButtonText: 'Cancel',
+                                                type: 'info'
+                                            }).catch(function () { })];
+                                    case 2:
+                                        ok = _a.sent();
+                                        if (ok) {
+                                            this.showLoding();
+                                            if (this.currentItem.id) {
+                                                item = this.allItems.find(function (x) { return x.id == _this.currentItem.id; });
+                                                if (item) {
+                                                    item.name = this.currentItem.name;
+                                                }
+                                            }
+                                            else {
+                                                newItem = new Item();
+                                                if (this.allItems.length == 0) {
+                                                    newItem.id = 1;
+                                                }
+                                                else {
+                                                    newItem.id = this.allItems[this.allItems.length - 1].id + 1;
+                                                }
+                                                newItem.name = this.currentItem.name;
+                                                this.allItems.push(newItem);
+                                                this.items.push(newItem);
+                                                this.currentItem.id = newItem.id;
+                                            }
+                                            this.$notify({
+                                                title: 'Success',
+                                                message: 'completed.',
+                                                type: 'success'
+                                            });
+                                        }
+                                        return [2 /*return*/];
+                                }
+                            });
+                        });
                     },
                     remove: function () {
-                        var _this = this;
-                        index = this.allItems.findIndex(function (x) { return x.id == _this.currentItem.id; });
-                        this.allItems.splice(index, 1);
-                        var index = this.items.findIndex(function (x) { return x.id == _this.currentItem.id; });
-                        this.items.splice(index, 1);
-                        this.resetCurrentItem();
+                        return __awaiter(this, void 0, void 0, function () {
+                            var _this = this;
+                            var ok, index;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, this.$confirm('do you want to remove?', 'Confirm', {
+                                            confirmButtonText: 'OK',
+                                            cancelButtonText: 'Cancel',
+                                            type: 'warning'
+                                        }).catch(function () { })];
+                                    case 1:
+                                        ok = _a.sent();
+                                        if (ok) {
+                                            this.showLoding();
+                                            index = this.allItems.findIndex(function (x) { return x.id == _this.currentItem.id; });
+                                            this.allItems.splice(index, 1);
+                                            index = this.items.findIndex(function (x) { return x.id == _this.currentItem.id; });
+                                            this.items.splice(index, 1);
+                                            this.resetCurrentItem();
+                                            this.$notify({
+                                                title: 'Success',
+                                                message: 'completed.',
+                                                type: 'success'
+                                            });
+                                        }
+                                        return [2 /*return*/];
+                                }
+                            });
+                        });
+                    },
+                    showLoding: function () {
+                        var loading = this.$loading({
+                            lock: true,
+                            text: 'Loading',
+                            spinner: 'el-icon-loading'
+                        });
+                        setTimeout(function () {
+                            loading.close();
+                        }, 1000);
                     },
                     fetchItems: function () {
                         var _this = this;
                         this.dialogVisible = false;
+                        this.showLoding();
                         if (this.filter.id > 0) {
-                            var item = this.allItems.find(function (x) { return x.id == _this.filter.id; });
-                            this.items.length = 0;
-                            if (item)
-                                this.items.push(item);
+                            this.items = this.allItems.filter(function (x) { return x.id == _this.filter.id; });
                         }
                         else if (this.filter.name) {
-                            var items = this.allItems.filter(function (x) { return x.name.indexOf(_this.filter.name) == 0; });
-                            this.items.length = 0;
-                            items.forEach(function (x) { return _this.items.push(x); });
+                            this.items = this.allItems.filter(function (x) { return x.name.indexOf(_this.filter.name) == 0; });
                         }
                         else {
-                            this.items.length = 0;
-                            this.allItems.forEach(function (x) { return _this.items.push(x); });
+                            this.items = this.allItems.filter(function (x) { return true; });
                         }
                         this.resetCurrentItem();
                     },
                     resetCurrentItem: function () {
-                        this.currentItem.id = null;
+                        this.currentItem.id = 0;
                         this.currentItem.name = '';
                     }
                 }
@@ -15341,13 +15475,13 @@ exports.clearImmediate = clearImmediate;
 /* 70 */
 /***/ (function(module, exports) {
 
-module.exports = "<div>\r\n    <div class=\"row header\">        \r\n        <div class=\"col-sm-12\">\r\n            <slot name=\"header\"></slot>\r\n        </div>\r\n    </div>\r\n    <br />\r\n    <div class=\"row body\">\r\n        <div class=\"col-sm-8 auto-height\">\r\n            <slot name=\"list\"></slot>\r\n        </div>\r\n        <div class=\"col-sm-4 auto-height\">\r\n            <slot name=\"detail\"></slot>\r\n        </div>\r\n    </div>\r\n    <br />\r\n    <div class=\"row footer\">        \r\n        <div class=\"col-sm-12\">\r\n            <slot name=\"footer\"></slot>\r\n        </div>\r\n    </div>\r\n</div>";
+module.exports = "<div>\r\n    <div class=\"row\">        \r\n        <div class=\"col-sm-12\">\r\n            <slot name=\"header\"></slot>\r\n        </div>\r\n    </div>\r\n    <br>\r\n    <div class=\"row\">\r\n        <div class=\"col-sm-8 auto-height\">\r\n            <slot name=\"list\"></slot>\r\n        </div>\r\n        <div class=\"col-sm-4 auto-height\">\r\n            <slot name=\"detail\"></slot>\r\n        </div>\r\n    </div>      \r\n    <br>\r\n    <div class=\"row\">        \r\n        <div class=\"col-sm-12\">                \r\n            <div class=\"pull-right\">\r\n                <slot name=\"footer\"></slot>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>";
 
 /***/ }),
 /* 71 */
 /***/ (function(module, exports) {
 
-module.exports = "<list-detail-frame>\r\n    <template slot=\"header\">\r\n        <el-button v-on:click=\"dialogVisible = true\">filter</el-button>\r\n        <el-dialog\r\n        title=\"filter\"\r\n        v-bind:visible.sync=\"dialogVisible\"\r\n        width=\"50%\">            \r\n            <el-form label-width=\"100px\">\r\n                <el-form-item label=\"id\">                    \r\n                    <el-input v-model=\"filter.id\"></el-input>\r\n                </el-form-item>                \r\n                <el-form-item label=\"like name\">\r\n                    <el-input v-model=\"filter.name\"></el-input>\r\n                </el-form-item>       \r\n            </el-form>\r\n            <template slot=\"footer\" class=\"dialog-footer\">     \r\n                <el-button v-on:click=\"dialogVisible = false\">Cancel</el-button>\r\n                <el-button type=\"primary\" @click=\"fetchItems\">Confirm</el-button>       \r\n            </template>\r\n        </el-dialog>\r\n        <el-button type=\"primary\" v-on:click=\"createNew\">new</el-button>\r\n    </template>\r\n\r\n    <template slot=\"list\">\r\n        <el-table\r\n            :data=\"items\">\r\n            <el-table-column>\r\n                <el-button type=\"primary\" slot-scope=\"scope\" v-on:click=\"edit(scope.row)\">edit</el-button>       \r\n            </el-table-column>\r\n            <el-table-column\r\n                prop=\"id\"\r\n                label=\"id\">\r\n            </el-table-column>\r\n            <el-table-column\r\n                prop=\"name\"\r\n                label=\"name\">\r\n            </el-table-column>\r\n        </el-table>        \r\n    </template>\r\n\r\n    <template slot=\"detail\">\r\n        <el-form label-width=\"100px\">\r\n            <el-form-item label=\"id\">                    \r\n                {{currentItem.id}}\r\n            </el-form-item>                \r\n            <el-form-item label=\"name\">\r\n                <el-input v-model=\"currentItem.name\"></el-input>\r\n            </el-form-item>       \r\n        </el-form>        \r\n    </template>\r\n\r\n    <template slot=\"footer\">\r\n        <el-button type=\"primary\" v-on:click=\"regist\">regist</el-button>\r\n        <el-button>output</el-button>\r\n        <el-button type=\"danger\" v-on:click=\"remove\">remove</el-button>\r\n    </template>\r\n</list-detail-frame>";
+module.exports = "<list-detail-frame>\r\n    <template slot=\"header\">        \r\n        <el-button v-on:click=\"dialogVisible = true\">filter</el-button>\r\n        <el-button-group>\r\n            <el-button icon=\"el-icon-arrow-left\"></el-button>\r\n            <el-button><i class=\"el-icon-arrow-right el-icon-right\"></i></el-button>\r\n        </el-button-group>\r\n        <el-select v-model=\"currentPage\" style=\"width:110px;\">\r\n            <el-option                \r\n                v-for=\"page in pages\"\r\n                :key=\"page\"                \r\n                :label=\"getPageName(page)\"\r\n                :value=\"page\">\r\n            </el-option>\r\n        </el-select>\r\n        <el-dialog\r\n            title=\"filter\"\r\n            v-bind:visible.sync=\"dialogVisible\"\r\n            width=\"50%\">      \r\n            <el-tabs type=\"border-card\">\r\n                <el-tab-pane label=\"filter\">\r\n                    <el-form label-width=\"100px\">\r\n                        <el-form-item label=\"id\">                                                \r\n                            <el-input-number v-model=\"filter.id\"></el-input-number>\r\n                        </el-form-item>                \r\n                        <el-form-item label=\"like name\">\r\n                            <el-input v-model=\"filter.name\"></el-input>\r\n                        </el-form-item>       \r\n                    </el-form>\r\n                </el-tab-pane>\r\n                <el-tab-pane label=\"sort\">                        \r\n                </el-tab-pane>\r\n            </el-tabs>               \r\n            <template slot=\"footer\">                                     \r\n                <el-button v-on:click=\"dialogVisible = false\">cancel</el-button>\r\n                <el-button v-on:click=\"clearFilter\">clear</el-button>\r\n                <el-button type=\"primary\" v-on:click=\"fetchItems\">execute</el-button>       \r\n            </template>\r\n        </el-dialog>\r\n        <el-button type=\"primary\" v-on:click=\"createNew\">new</el-button>\r\n    </template>\r\n\r\n    <template slot=\"list\">\r\n        <el-tabs type=\"border-card\">\r\n            <el-tab-pane label=\"items\">\r\n                <el-table\r\n                    :data=\"items\"                    \r\n                    :height=\"listHeight\">                    \r\n                    <el-table-column\r\n                        prop=\"id\"\r\n                        label=\"id\">\r\n                        <el-button type=\"text\" slot-scope=\"scope\" v-on:click=\"edit(scope.row)\">{{scope.row.id}}</el-button>       \r\n                    </el-table-column>\r\n                    <el-table-column\r\n                        prop=\"name\"\r\n                        label=\"name\">                        \r\n                    </el-table-column>\r\n                </el-table>   \r\n            </el-tab-pane>\r\n        </el-tabs>                   \r\n    </template>\r\n\r\n    <template slot=\"detail\">\r\n        <el-tabs type=\"border-card\">            \r\n            <el-tab-pane label=\"item\">\r\n                <div v-bind:style=\"detailStyle\">\r\n                    <el-form label-width=\"80px\" :model=\"currentItem\" :rules=\"detailRules\" ref=\"detailForm\">\r\n                        <el-form-item label=\"id\">                    \r\n                            <span v-if=\"currentItem.id > 0\">{{currentItem.id}}</span>\r\n                        </el-form-item>                \r\n                        <el-form-item label=\"name\" prop=\"name\">\r\n                            <el-input v-model=\"currentItem.name\"></el-input>\r\n                        </el-form-item>       \r\n                    </el-form> \r\n                </div>\r\n            </el-tab-pane>\r\n        </el-tabs>               \r\n    </template>\r\n\r\n    <template slot=\"footer\">        \r\n        <el-button type=\"danger\" v-on:click=\"remove\">remove</el-button>\r\n        <el-button v-on:click=\"outputDialog = true\">output</el-button>\r\n        <el-dialog\r\n            title=\"output\"\r\n            v-bind:visible.sync=\"outputDialog\"\r\n            width=\"50%\">            \r\n            <el-select v-model=\"selectedLayoutCd\">\r\n                <el-option                \r\n                    v-for=\"layoutCode in layoutCodes\"\r\n                    :key=\"layoutCode\"  \r\n                    :label=\"getLayoutName(layoutCode)\"                                  \r\n                    :value=\"layoutCode\">\r\n                </el-option>                \r\n            </el-select>\r\n            <template slot=\"footer\">                                     \r\n                <el-button v-on:click=\"outputDialog = false\">cancel</el-button>\r\n                <el-button type=\"primary\" v-on:click=\"outputDialog = false\">execute</el-button>       \r\n            </template>\r\n        </el-dialog>\r\n        <el-button type=\"primary\" v-on:click=\"register\">register</el-button>          \r\n    </template>\r\n</list-detail-frame>";
 
 /***/ }),
 /* 72 */
@@ -52145,9 +52279,9 @@ var __WEBPACK_AMD_DEFINE_RESULT__;
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = fecha;
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_RESULT__ = function () {
+    !(__WEBPACK_AMD_DEFINE_RESULT__ = (function () {
       return fecha;
-    }.call(exports, __webpack_require__, exports, module),
+    }).call(exports, __webpack_require__, exports, module),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   } else {
     main.fecha = fecha;

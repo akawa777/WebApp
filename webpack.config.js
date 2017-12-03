@@ -1,10 +1,10 @@
 ﻿module.exports = {
     // メインとなるJavaScriptファイル（エントリーポイント）
-    entry: './scripts/sample/sample.entry.ts',
+    entry: './webapp/scripts/sample/sample.entry.ts',
     // ファイルの出力設定
     output: {
         //  出力ファイルのディレクトリ名
-        path: `${__dirname}/wwwroot/js/bundles`,
+        path: `${__dirname}/webapp/wwwroot/js/bundles`,
         // 出力ファイル名
         filename: 'sample.bundle.js'
     },

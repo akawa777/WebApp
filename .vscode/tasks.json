@@ -1,47 +1,36 @@
 {
     "version": "2.0.0",
     "tasks": [
-        // {
-        //     "label": "build",
-        //     "command": "dotnet",
-        //     "type": "process",
-        //     "args": [
-        //         "build",
-        //         "${workspaceFolder}/WebApp/WebApp.csproj"
-        //     ],
-        //     "problemMatcher": "$msCompile",
-        //     "group": {
-        //         "kind": "build",
-        //         "isDefault": true
-        //     }
-        // }
         {
             "label": "build",
             "command": "cmd",
             "type": "process",
-            "args": [    
+            "args": [
                 "/c",
-                "${workspaceFolder}/WebApp/build.bat"
-            ],            
+                "${workspaceFolder}/build.bat"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": [
+                "$msCompile"
+            ]
+        },
+        {
+            "label": "ready",
+            "command": "cmd",
+            "type": "process",
+            "args": [
+                "/c",
+                "${workspaceFolder}/ready.bat"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "webpack",
+            "problemMatcher": []
         }
-        // {
-        //     "label": "build",
-        //     "command": "npm",
-        //     "type": "shell",                        
-        //     "args": [    
-        //         "--prefix",
-        //         "${workspaceFolder}/WebApp",
-        //         "run",
-        //         "build"
-        //     ],            
-        //     "group": {
-        //         "kind": "build",
-        //         "isDefault": true
-        //     }
-        // }
     ]
 }

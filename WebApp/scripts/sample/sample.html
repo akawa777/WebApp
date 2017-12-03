@@ -1,57 +1,102 @@
 <list-detail-frame>
-    <template slot="header">
+    <template slot="header">        
         <el-button v-on:click="dialogVisible = true">filter</el-button>
+        <el-button-group>
+            <el-button icon="el-icon-arrow-left"></el-button>
+            <el-button><i class="el-icon-arrow-right el-icon-right"></i></el-button>
+        </el-button-group>
+        <el-select v-model="currentPage" style="width:110px;">
+            <el-option                
+                v-for="page in pages"
+                :key="page"                
+                :label="getPageName(page)"
+                :value="page">
+            </el-option>
+        </el-select>
         <el-dialog
-        title="filter"
-        v-bind:visible.sync="dialogVisible"
-        width="50%">            
-            <el-form label-width="100px">
-                <el-form-item label="id">                    
-                    <el-input v-model="filter.id"></el-input>
-                </el-form-item>                
-                <el-form-item label="like name">
-                    <el-input v-model="filter.name"></el-input>
-                </el-form-item>       
-            </el-form>
-            <template slot="footer" class="dialog-footer">     
-                <el-button v-on:click="dialogVisible = false">Cancel</el-button>
-                <el-button type="primary" @click="fetchItems">Confirm</el-button>       
+            title="filter"
+            v-bind:visible.sync="dialogVisible"
+            width="50%">      
+            <el-tabs type="border-card">
+                <el-tab-pane label="filter">
+                    <el-form label-width="100px">
+                        <el-form-item label="id">                                                
+                            <el-input-number v-model="filter.id"></el-input-number>
+                        </el-form-item>                
+                        <el-form-item label="like name">
+                            <el-input v-model="filter.name"></el-input>
+                        </el-form-item>       
+                    </el-form>
+                </el-tab-pane>
+                <el-tab-pane label="sort">                        
+                </el-tab-pane>
+            </el-tabs>               
+            <template slot="footer">                                     
+                <el-button v-on:click="dialogVisible = false">cancel</el-button>
+                <el-button v-on:click="clearFilter">clear</el-button>
+                <el-button type="primary" v-on:click="fetchItems">execute</el-button>       
             </template>
         </el-dialog>
         <el-button type="primary" v-on:click="createNew">new</el-button>
     </template>
 
     <template slot="list">
-        <el-table
-            :data="items">
-            <el-table-column>
-                <el-button type="primary" slot-scope="scope" v-on:click="edit(scope.row)">edit</el-button>       
-            </el-table-column>
-            <el-table-column
-                prop="id"
-                label="id">
-            </el-table-column>
-            <el-table-column
-                prop="name"
-                label="name">
-            </el-table-column>
-        </el-table>        
+        <el-tabs type="border-card">
+            <el-tab-pane label="items">
+                <el-table
+                    :data="items"                    
+                    :height="listHeight">                    
+                    <el-table-column
+                        prop="id"
+                        label="id">
+                        <el-button type="text" slot-scope="scope" v-on:click="edit(scope.row)">{{scope.row.id}}</el-button>       
+                    </el-table-column>
+                    <el-table-column
+                        prop="name"
+                        label="name">                        
+                    </el-table-column>
+                </el-table>   
+            </el-tab-pane>
+        </el-tabs>                   
     </template>
 
     <template slot="detail">
-        <el-form label-width="100px">
-            <el-form-item label="id">                    
-                {{currentItem.id}}
-            </el-form-item>                
-            <el-form-item label="name">
-                <el-input v-model="currentItem.name"></el-input>
-            </el-form-item>       
-        </el-form>        
+        <el-tabs type="border-card">            
+            <el-tab-pane label="item">
+                <div v-bind:style="detailStyle">
+                    <el-form label-width="80px" :model="currentItem" :rules="detailRules" ref="detailForm">
+                        <el-form-item label="id">                    
+                            <span v-if="currentItem.id > 0">{{currentItem.id}}</span>
+                        </el-form-item>                
+                        <el-form-item label="name" prop="name">
+                            <el-input v-model="currentItem.name"></el-input>
+                        </el-form-item>       
+                    </el-form> 
+                </div>
+            </el-tab-pane>
+        </el-tabs>               
     </template>
 
-    <template slot="footer">
-        <el-button type="primary" v-on:click="regist">regist</el-button>
-        <el-button>output</el-button>
+    <template slot="footer">        
         <el-button type="danger" v-on:click="remove">remove</el-button>
+        <el-button v-on:click="outputDialog = true">output</el-button>
+        <el-dialog
+            title="output"
+            v-bind:visible.sync="outputDialog"
+            width="50%">            
+            <el-select v-model="selectedLayoutCd">
+                <el-option                
+                    v-for="layoutCode in layoutCodes"
+                    :key="layoutCode"  
+                    :label="getLayoutName(layoutCode)"                                  
+                    :value="layoutCode">
+                </el-option>                
+            </el-select>
+            <template slot="footer">                                     
+                <el-button v-on:click="outputDialog = false">cancel</el-button>
+                <el-button type="primary" v-on:click="outputDialog = false">execute</el-button>       
+            </template>
+        </el-dialog>
+        <el-button type="primary" v-on:click="register">register</el-button>          
     </template>
 </list-detail-frame>
