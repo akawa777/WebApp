@@ -1,5 +1,5 @@
 <list-detail-frame>
-    <template slot="header">        
+    <el-col :sm="24" slot="header">        
         <el-button v-on:click="dialogVisible = true">filter</el-button>
         <el-button-group>
             <el-button icon="el-icon-arrow-left"></el-button>
@@ -38,14 +38,15 @@
             </template>
         </el-dialog>
         <el-button type="primary" v-on:click="createNew">new</el-button>
-    </template>
+    </el-col>
 
-    <template slot="list">
+    <el-col :sm="24" slot="list">
         <el-tabs type="border-card">
             <el-tab-pane label="items">
                 <el-table
                     :data="items"                    
-                    :height="listHeight">                    
+                    :height="listHeight"
+                    :empty-text="emptyText">                    
                     <el-table-column
                         prop="id"
                         label="id">
@@ -58,9 +59,9 @@
                 </el-table>   
             </el-tab-pane>
         </el-tabs>                   
-    </template>
+    </el-col>
 
-    <template slot="detail">
+    <el-col :sm="6" slot="detail">
         <el-tabs type="border-card">            
             <el-tab-pane label="item">
                 <div v-bind:style="detailStyle">
@@ -75,9 +76,10 @@
                 </div>
             </el-tab-pane>
         </el-tabs>               
-    </template>
+    </el-col>
 
-    <template slot="footer">        
+    <el-col :sm="24" slot="footer" style="text-align:right;">        
+        <div class="">
         <el-button type="danger" v-on:click="remove">remove</el-button>
         <el-button v-on:click="outputDialog = true">output</el-button>
         <el-dialog
@@ -98,5 +100,6 @@
             </template>
         </el-dialog>
         <el-button type="primary" v-on:click="register">register</el-button>          
-    </template>
+        </div>
+    </el-col>
 </list-detail-frame>

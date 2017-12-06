@@ -2,6 +2,7 @@ import Vue from 'vue'
 import ListDetailFrame from '../base/listDetailFrame'
 import sampleHtml from './sample.html'
 import Element, { MessageBox } from 'element-ui'
+import { ElLoadingComponent } from 'element-ui/types/loading'
 
 (async function () {            
     Vue.use(Element)
@@ -42,10 +43,13 @@ import Element, { MessageBox } from 'element-ui'
                 name: [
                   { required: true, message: 'please input name', trigger: 'blur' }
                 ]
-            }
+            },
+            emptyText: 'no data'
         },   
-        mounted: function() {                        
-            for (var i = 0; i < 10; i++) {
+        mounted: async function() {               
+            await this.showLoding()            
+
+            for (var i = 0; i < 20; i++) {
                 var item = new Item()
                 item.id = i + 101
                 item.name = `name_${item.id}`
@@ -68,15 +72,27 @@ import Element, { MessageBox } from 'element-ui'
                 this.filter.name = ''
             },
             setListHeigth: function() {   
+                var set = () => {
+                    var height =  window.innerHeight - 240                    
+                    this.listHeight = height - 70
+                }
+
+                set()
+
                 setInterval(() =>{
-                    var el = document.querySelector('.auto-height') as HTMLElement
-                    if (el.style.height) this.listHeight = parseInt(el.style.height) - 70
+                    set()
                 }, 500)             
             },        
-            setDetailHeigth: function() {   
+            setDetailHeigth: function() {  
+                var set = () => {
+                    var height =  window.innerHeight - 240                    
+                    this.detailStyle.height = `${height - 70}px`
+                }
+
+                set() 
+                
                 setInterval(() =>{
-                    var el = document.querySelector('.auto-height') as HTMLElement
-                    if (el.style.height) this.detailStyle.height = `${parseInt(el.style.height) - 70}px`;
+                    set()
                 }, 500)             
             },   
             getPageName: function(page: number): string {
@@ -85,21 +101,29 @@ import Element, { MessageBox } from 'element-ui'
             getLayoutName: function(layoutCode: number): string {
                 return `${layoutCode} layout`;
             },
-            createNew: function() {        
-                this.showLoding()
+            createNew: async function() {        
+                await this.showLoding()
 
                 this.resetCurrentItem()
             },
-            edit: function(item: Item) {     
-                this.showLoding()
+            edit: async function(item: Item) {     
+                await this.showLoding()
 
                 this.currentItem.id = item.id
                 this.currentItem.name = item.name
             },
-            register: async function() {                  
+            register: async function() {                                  
                 var valid = await (this.$refs.detailForm as any).validate().catch(() => {})
 
-                if (!valid) return;
+                if (!valid) {
+                    this.$notify({
+                        title: 'Error',
+                        message: 'failed.',
+                        type: 'error'
+                    });
+
+                    return;
+                }
 
                 var ok = await this.$confirm('do you want to register?', 'Confirm', {
                     confirmButtonText: 'OK',
@@ -108,12 +132,12 @@ import Element, { MessageBox } from 'element-ui'
                 }).catch(() => {})
 
                 if (ok) {
-                    this.showLoding()
+                    await this.showLoding()
 
                     if (this.currentItem.id) {                              
-                        var item = this.allItems.find(x => x.id == this.currentItem.id)
-                        if (item) {
-                            item.name = this.currentItem.name
+                        var items = this.allItems.filter(x => x.id == this.currentItem.id)
+                        if (items.length > 0) {
+                            items[0].name = this.currentItem.name
                         }                              
                     } else {
                         var newItem = new Item()
@@ -143,11 +167,20 @@ import Element, { MessageBox } from 'element-ui'
                 }).catch(() => {})
                 
                 if (ok) {
-                    this.showLoding()
+                    await this.showLoding()
 
-                    index  = this.allItems.findIndex(x => x.id == this.currentItem.id)                                
+                    var index = -1;
+                    this.allItems.forEach((x, i) => {
+                        if (index != -1) return
+                        if (x.id == this.currentItem.id) index = i
+                    })                                
                     this.allItems.splice(index, 1)
-                    var index  = this.items.findIndex(x => x.id == this.currentItem.id)                                
+                    
+                    index = -1
+                    this.items.forEach((x, i) => {
+                        if (index != -1) return
+                        if (x.id == this.currentItem.id) index = i
+                    })                            
                     this.items.splice(index, 1)
                     this.resetCurrentItem()
 
@@ -158,21 +191,24 @@ import Element, { MessageBox } from 'element-ui'
                     });
                 }
             },
-            showLoding: function() {
+            showLoding: function(): Promise<void> {
                 var loading = this.$loading({
                     lock: true,
                     text: 'Loading',
                     spinner: 'el-icon-loading'                    
                   });
 
-                setTimeout(() => {
-                    loading.close();
-                }, 1000);
+                return new Promise((reslove, reject) =>{
+                    setTimeout(() => {
+                        loading.close();
+                        reslove();
+                    }, 1000);
+                })
             },
-            fetchItems: function() {                
+            fetchItems: async function() {                
                 this.dialogVisible = false 
 
-                this.showLoding()
+                await this.showLoding()
 
                 if (this.filter.id > 0) {
                     this.items = this.allItems.filter(x => x.id == this.filter.id)                    
