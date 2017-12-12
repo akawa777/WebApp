@@ -1,4 +1,6 @@
-<list-detail-frame>
+<list-detail-frame
+    @resize="resize">
+
     <el-col :sm="24" slot="header">        
         <el-button v-on:click="dialogVisible = true">filter</el-button>
         <el-button-group>
@@ -40,7 +42,7 @@
         <el-button type="primary" v-on:click="createNew">new</el-button>
     </el-col>
 
-    <el-col :sm="24" slot="list">
+    <el-col :sm="8" slot="list">
         <el-tabs type="border-card">
             <el-tab-pane label="items">
                 <el-table
@@ -61,7 +63,7 @@
         </el-tabs>                   
     </el-col>
 
-    <el-col :sm="6" slot="detail">
+    <!-- <el-col :sm="6" slot="detail">
         <el-tabs type="border-card">            
             <el-tab-pane label="item">
                 <div v-bind:style="detailStyle">
@@ -76,7 +78,7 @@
                 </div>
             </el-tab-pane>
         </el-tabs>               
-    </el-col>
+    </el-col> -->
 
     <el-col :sm="24" slot="footer" style="text-align:right;">        
         <div class="">

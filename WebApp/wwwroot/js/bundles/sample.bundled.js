@@ -54889,8 +54889,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
                                         this.allItems.push(item);
                                         this.items.push(item);
                                     }
-                                    this.setListHeigth();
-                                    this.setDetailHeigth();
                                     return [2 /*return*/];
                             }
                         });
@@ -54906,27 +54904,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
                         this.filter.id = 0;
                         this.filter.name = '';
                     },
-                    setListHeigth: function () {
-                        var _this = this;
-                        var set = function () {
-                            var height = window.innerHeight - 240;
-                            _this.listHeight = height - 70;
-                        };
-                        set();
-                        setInterval(function () {
-                            set();
-                        }, 500);
-                    },
-                    setDetailHeigth: function () {
-                        var _this = this;
-                        var set = function () {
-                            var height = window.innerHeight - 240;
-                            _this.detailStyle.height = height - 70 + "px";
-                        };
-                        set();
-                        setInterval(function () {
-                            set();
-                        }, 500);
+                    resize: function (height) {
+                        this.listHeight = height;
+                        this.detailStyle.height = height + "px";
                     },
                     getPageName: function (page) {
                         return page + " page";
@@ -55125,7 +55105,36 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 
 
 /* harmony default export */ __webpack_exports__["a"] = (__WEBPACK_IMPORTED_MODULE_0_vue__["default"].extend({
-    template: __WEBPACK_IMPORTED_MODULE_1__listDetailFrame_html___default.a
+    template: __WEBPACK_IMPORTED_MODULE_1__listDetailFrame_html___default.a,
+    mounted: function () {
+        this.resize();
+    },
+    data: function () {
+        return {
+            detailStyle: {
+                height: '0px',
+                overflow: 'auto'
+            },
+            sideStyle: {
+                height: '0px',
+                overflow: 'auto'
+            }
+        };
+    },
+    methods: {
+        resize: function () {
+            var self = this;
+            var getHeight = function () { return window.innerHeight - 310; };
+            self.$emit("resize", getHeight());
+            self.detailStyle.height = getHeight() + "px";
+            self.sideStyle.height = getHeight() + 30 + "px";
+            window.addEventListener("resize", function () {
+                self.$emit("resize", getHeight());
+                self.detailStyle.height = getHeight() + "px";
+                self.sideStyle.height = getHeight() + 30 + "px";
+            });
+        }
+    }
 }));
 
 
@@ -55133,13 +55142,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 /* 145 */
 /***/ (function(module, exports) {
 
-module.exports = "<div>\r\n    <el-row>        \r\n        <slot name=\"header\"></slot>\r\n    </el-row>\r\n    <br>    \r\n    <el-row :gutter=\"20\">\r\n        <slot name=\"list\"></slot>\r\n        <slot name=\"detail\"></slot>\r\n    </el-row>      \r\n    <br>\r\n    <el-row>        \r\n        <slot name=\"footer\"></slot>\r\n    </el-row>\r\n</div>";
+module.exports = "<div>\r\n    <el-row>                \r\n        <slot name=\"header\"></slot>\r\n    </el-row>\r\n    <br>    \r\n    <el-row :gutter=\"20\">\r\n        <slot name=\"list\"></slot>\r\n        <slot name=\"detail\">\r\n            <el-col :sm=\"8\">\r\n                <el-tabs type=\"border-card\">            \r\n                    <el-tab-pane label=\"item\">\r\n                        <div v-bind:style=\"detailStyle\">\r\n                            <slot name=\"detail-tab1\"></slot>                            \r\n                        </div>\r\n                    </el-tab-pane>\r\n                    <el-tab-pane label=\"item\">\r\n                        <div v-bind:style=\"detailStyle\">\r\n                            <slot name=\"detail-tab2\"></slot>                            \r\n                        </div>\r\n                    </el-tab-pane>\r\n                    <el-tab-pane label=\"item\">\r\n                        <div v-bind:style=\"detailStyle\">\r\n                            <slot name=\"detail-tab2\"></slot>                            \r\n                        </div>\r\n                    </el-tab-pane>\r\n                </el-tabs>                               \r\n            </el-col>\r\n        </slot>\r\n        <slot name=\"side\">\r\n                <el-col :sm=\"8\">\r\n                    <el-card class=\"box-card\">\r\n                        <el-menu                        \r\n                        v-bind:style=\"sideStyle\"\r\n                        default-active=\"2\">\r\n                            <el-submenu index=\"1\">\r\n                                <template slot=\"title\">\r\n                                  <i class=\"el-icon-location\"></i>\r\n                                  <span>Navigator One</span>\r\n                                </template>\r\n                                <el-menu-item-group title=\"Group One\">\r\n                                  <el-menu-item index=\"1-1\">item one</el-menu-item>\r\n                                  <el-menu-item index=\"1-2\">item one</el-menu-item>\r\n                                </el-menu-item-group>\r\n                                <el-menu-item-group title=\"Group Two\">\r\n                                  <el-menu-item index=\"1-3\">item three</el-menu-item>\r\n                                </el-menu-item-group>\r\n                                <el-submenu index=\"1-4\">\r\n                                  <template slot=\"title\">item four</template>\r\n                                  <el-menu-item index=\"1-4-1\">item one</el-menu-item>\r\n                                </el-submenu>\r\n                            </el-submenu>\r\n                            <el-menu-item index=\"2\">\r\n                            <i class=\"el-icon-menu\"></i>\r\n                            <span>Navigator Two</span>\r\n                            </el-menu-item>\r\n                            <el-menu-item index=\"3\">\r\n                            <i class=\"el-icon-setting\"></i>\r\n                            <span>Navigator Three</span>\r\n                            </el-menu-item>\r\n                        </el-menu>    \r\n                    </el-card>\r\n                    \r\n                </el-col>\r\n            </slot>\r\n    </el-row>      \r\n    <br>\r\n    <el-row>        \r\n        <slot name=\"footer\"></slot>\r\n    </el-row>\r\n</div>";
 
 /***/ }),
 /* 146 */
 /***/ (function(module, exports) {
 
-module.exports = "<list-detail-frame>\r\n    <el-col :sm=\"24\" slot=\"header\">        \r\n        <el-button v-on:click=\"dialogVisible = true\">filter</el-button>\r\n        <el-button-group>\r\n            <el-button icon=\"el-icon-arrow-left\"></el-button>\r\n            <el-button><i class=\"el-icon-arrow-right el-icon-right\"></i></el-button>\r\n        </el-button-group>\r\n        <el-select v-model=\"currentPage\" style=\"width:110px;\">\r\n            <el-option                \r\n                v-for=\"page in pages\"\r\n                :key=\"page\"                \r\n                :label=\"getPageName(page)\"\r\n                :value=\"page\">\r\n            </el-option>\r\n        </el-select>\r\n        <el-dialog\r\n            title=\"filter\"\r\n            v-bind:visible.sync=\"dialogVisible\"\r\n            width=\"50%\">      \r\n            <el-tabs type=\"border-card\">\r\n                <el-tab-pane label=\"filter\">\r\n                    <el-form label-width=\"100px\">\r\n                        <el-form-item label=\"id\">                                                \r\n                            <el-input-number v-model=\"filter.id\"></el-input-number>\r\n                        </el-form-item>                \r\n                        <el-form-item label=\"like name\">\r\n                            <el-input v-model=\"filter.name\"></el-input>\r\n                        </el-form-item>       \r\n                    </el-form>\r\n                </el-tab-pane>\r\n                <el-tab-pane label=\"sort\">                        \r\n                </el-tab-pane>\r\n            </el-tabs>               \r\n            <template slot=\"footer\">                                     \r\n                <el-button v-on:click=\"dialogVisible = false\">cancel</el-button>\r\n                <el-button v-on:click=\"clearFilter\">clear</el-button>\r\n                <el-button type=\"primary\" v-on:click=\"fetchItems\">execute</el-button>       \r\n            </template>\r\n        </el-dialog>\r\n        <el-button type=\"primary\" v-on:click=\"createNew\">new</el-button>\r\n    </el-col>\r\n\r\n    <el-col :sm=\"24\" slot=\"list\">\r\n        <el-tabs type=\"border-card\">\r\n            <el-tab-pane label=\"items\">\r\n                <el-table\r\n                    :data=\"items\"                    \r\n                    :height=\"listHeight\"\r\n                    :empty-text=\"emptyText\">                    \r\n                    <el-table-column\r\n                        prop=\"id\"\r\n                        label=\"id\">\r\n                        <el-button type=\"text\" slot-scope=\"scope\" v-on:click=\"edit(scope.row)\">{{scope.row.id}}</el-button>       \r\n                    </el-table-column>\r\n                    <el-table-column\r\n                        prop=\"name\"\r\n                        label=\"name\">                        \r\n                    </el-table-column>\r\n                </el-table>   \r\n            </el-tab-pane>\r\n        </el-tabs>                   \r\n    </el-col>\r\n\r\n    <el-col :sm=\"6\" slot=\"detail\">\r\n        <el-tabs type=\"border-card\">            \r\n            <el-tab-pane label=\"item\">\r\n                <div v-bind:style=\"detailStyle\">\r\n                    <el-form label-width=\"80px\" :model=\"currentItem\" :rules=\"detailRules\" ref=\"detailForm\">\r\n                        <el-form-item label=\"id\">                    \r\n                            <span v-if=\"currentItem.id > 0\">{{currentItem.id}}</span>\r\n                        </el-form-item>                \r\n                        <el-form-item label=\"name\" prop=\"name\">\r\n                            <el-input v-model=\"currentItem.name\"></el-input>\r\n                        </el-form-item>       \r\n                    </el-form> \r\n                </div>\r\n            </el-tab-pane>\r\n        </el-tabs>               \r\n    </el-col>\r\n\r\n    <el-col :sm=\"24\" slot=\"footer\" style=\"text-align:right;\">        \r\n        <div class=\"\">\r\n        <el-button type=\"danger\" v-on:click=\"remove\">remove</el-button>\r\n        <el-button v-on:click=\"outputDialog = true\">output</el-button>\r\n        <el-dialog\r\n            title=\"output\"\r\n            v-bind:visible.sync=\"outputDialog\"\r\n            width=\"50%\">            \r\n            <el-select v-model=\"selectedLayoutCd\">\r\n                <el-option                \r\n                    v-for=\"layoutCode in layoutCodes\"\r\n                    :key=\"layoutCode\"  \r\n                    :label=\"getLayoutName(layoutCode)\"                                  \r\n                    :value=\"layoutCode\">\r\n                </el-option>                \r\n            </el-select>\r\n            <template slot=\"footer\">                                     \r\n                <el-button v-on:click=\"outputDialog = false\">cancel</el-button>\r\n                <el-button type=\"primary\" v-on:click=\"outputDialog = false\">execute</el-button>       \r\n            </template>\r\n        </el-dialog>\r\n        <el-button type=\"primary\" v-on:click=\"register\">register</el-button>          \r\n        </div>\r\n    </el-col>\r\n</list-detail-frame>";
+module.exports = "<list-detail-frame\r\n    @resize=\"resize\">\r\n\r\n    <el-col :sm=\"24\" slot=\"header\">        \r\n        <el-button v-on:click=\"dialogVisible = true\">filter</el-button>\r\n        <el-button-group>\r\n            <el-button icon=\"el-icon-arrow-left\"></el-button>\r\n            <el-button><i class=\"el-icon-arrow-right el-icon-right\"></i></el-button>\r\n        </el-button-group>\r\n        <el-select v-model=\"currentPage\" style=\"width:110px;\">\r\n            <el-option                \r\n                v-for=\"page in pages\"\r\n                :key=\"page\"                \r\n                :label=\"getPageName(page)\"\r\n                :value=\"page\">\r\n            </el-option>\r\n        </el-select>\r\n        <el-dialog\r\n            title=\"filter\"\r\n            v-bind:visible.sync=\"dialogVisible\"\r\n            width=\"50%\">      \r\n            <el-tabs type=\"border-card\">\r\n                <el-tab-pane label=\"filter\">\r\n                    <el-form label-width=\"100px\">\r\n                        <el-form-item label=\"id\">                                                \r\n                            <el-input-number v-model=\"filter.id\"></el-input-number>\r\n                        </el-form-item>                \r\n                        <el-form-item label=\"like name\">\r\n                            <el-input v-model=\"filter.name\"></el-input>\r\n                        </el-form-item>       \r\n                    </el-form>\r\n                </el-tab-pane>\r\n                <el-tab-pane label=\"sort\">                        \r\n                </el-tab-pane>\r\n            </el-tabs>               \r\n            <template slot=\"footer\">                                     \r\n                <el-button v-on:click=\"dialogVisible = false\">cancel</el-button>\r\n                <el-button v-on:click=\"clearFilter\">clear</el-button>\r\n                <el-button type=\"primary\" v-on:click=\"fetchItems\">execute</el-button>       \r\n            </template>\r\n        </el-dialog>\r\n        <el-button type=\"primary\" v-on:click=\"createNew\">new</el-button>\r\n    </el-col>\r\n\r\n    <el-col :sm=\"8\" slot=\"list\">\r\n        <el-tabs type=\"border-card\">\r\n            <el-tab-pane label=\"items\">\r\n                <el-table\r\n                    :data=\"items\"                    \r\n                    :height=\"listHeight\"\r\n                    :empty-text=\"emptyText\">                    \r\n                    <el-table-column\r\n                        prop=\"id\"\r\n                        label=\"id\">\r\n                        <el-button type=\"text\" slot-scope=\"scope\" v-on:click=\"edit(scope.row)\">{{scope.row.id}}</el-button>       \r\n                    </el-table-column>\r\n                    <el-table-column\r\n                        prop=\"name\"\r\n                        label=\"name\">                        \r\n                    </el-table-column>\r\n                </el-table>   \r\n            </el-tab-pane>\r\n        </el-tabs>                   \r\n    </el-col>\r\n\r\n    <!-- <el-col :sm=\"6\" slot=\"detail\">\r\n        <el-tabs type=\"border-card\">            \r\n            <el-tab-pane label=\"item\">\r\n                <div v-bind:style=\"detailStyle\">\r\n                    <el-form label-width=\"80px\" :model=\"currentItem\" :rules=\"detailRules\" ref=\"detailForm\">\r\n                        <el-form-item label=\"id\">                    \r\n                            <span v-if=\"currentItem.id > 0\">{{currentItem.id}}</span>\r\n                        </el-form-item>                \r\n                        <el-form-item label=\"name\" prop=\"name\">\r\n                            <el-input v-model=\"currentItem.name\"></el-input>\r\n                        </el-form-item>       \r\n                    </el-form> \r\n                </div>\r\n            </el-tab-pane>\r\n        </el-tabs>               \r\n    </el-col> -->\r\n\r\n    <el-col :sm=\"24\" slot=\"footer\" style=\"text-align:right;\">        \r\n        <div class=\"\">\r\n        <el-button type=\"danger\" v-on:click=\"remove\">remove</el-button>\r\n        <el-button v-on:click=\"outputDialog = true\">output</el-button>\r\n        <el-dialog\r\n            title=\"output\"\r\n            v-bind:visible.sync=\"outputDialog\"\r\n            width=\"50%\">            \r\n            <el-select v-model=\"selectedLayoutCd\">\r\n                <el-option                \r\n                    v-for=\"layoutCode in layoutCodes\"\r\n                    :key=\"layoutCode\"  \r\n                    :label=\"getLayoutName(layoutCode)\"                                  \r\n                    :value=\"layoutCode\">\r\n                </el-option>                \r\n            </el-select>\r\n            <template slot=\"footer\">                                     \r\n                <el-button v-on:click=\"outputDialog = false\">cancel</el-button>\r\n                <el-button type=\"primary\" v-on:click=\"outputDialog = false\">execute</el-button>       \r\n            </template>\r\n        </el-dialog>\r\n        <el-button type=\"primary\" v-on:click=\"register\">register</el-button>          \r\n        </div>\r\n    </el-col>\r\n</list-detail-frame>";
 
 /***/ })
 /******/ ]);

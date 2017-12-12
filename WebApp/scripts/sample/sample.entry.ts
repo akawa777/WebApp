@@ -57,9 +57,6 @@ import { ElLoadingComponent } from 'element-ui/types/loading'
                 this.allItems.push(item)
                 this.items.push(item)
             }
-
-            this.setListHeigth()
-            this.setDetailHeigth()
         },
         computed: {
             maxPage: function():number {
@@ -70,31 +67,11 @@ import { ElLoadingComponent } from 'element-ui/types/loading'
             clearFilter: function() {
                 this.filter.id = 0
                 this.filter.name = ''
+            },            
+            resize: function(height: number) {
+                this.listHeight = height
+                this.detailStyle.height = `${height}px`
             },
-            setListHeigth: function() {   
-                var set = () => {
-                    var height =  window.innerHeight - 240                    
-                    this.listHeight = height - 70
-                }
-
-                set()
-
-                setInterval(() =>{
-                    set()
-                }, 500)             
-            },        
-            setDetailHeigth: function() {  
-                var set = () => {
-                    var height =  window.innerHeight - 240                    
-                    this.detailStyle.height = `${height - 70}px`
-                }
-
-                set() 
-                
-                setInterval(() =>{
-                    set()
-                }, 500)             
-            },   
             getPageName: function(page: number): string {
                 return `${page} page`;
             },
