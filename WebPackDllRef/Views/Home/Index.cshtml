@@ -1,0 +1,20 @@
+﻿@section scripts {    
+    <!--
+    <script src="~/js/bundles/kernel.dll.js"></script>    
+    <script src="~/js/bundles/index.bundle.js"></script>    
+    -->
+
+    
+    <script src="~/js/require.js"></script>
+    <script>
+        require.config({
+            baseUrl: "js/bundles"
+        });
+        require(['index.bundle'], function(module){
+            module.default(document.getElementById('app'));
+        });
+    </script>
+    
+}
+
+<div id="app"></div>
