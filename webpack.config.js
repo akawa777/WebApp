@@ -1,6 +1,8 @@
 ﻿module.exports = {
     // メインとなるJavaScriptファイル（エントリーポイント）
-    entry: { sample: './webapp/scripts/sample/sample.entry.ts', sample2: './webapp/scripts/sample/sample2.entry.ts' },
+    entry: { 
+        sample: './webapp/scripts/sample/sample.entry.ts' 
+    },
     // ファイルの出力設定
     output: {
         //  出力ファイルのディレクトリ名

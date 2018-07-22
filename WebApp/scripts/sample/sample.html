@@ -1,107 +1,27 @@
-<list-detail-frame
-    @resize="resize">
+<!-- <h1>WebSocket Sample Application</h1>
+    <p id="stateLabel">Ready to connect...</p>
+    <div>
+        <label for="connectionUrl">WebSocket Server URL:</label>
+        <input id="connectionUrl" />
+        <button id="connectButton" type="submit">Connect</button>
+    </div>
+    <p></p>
+    <div>
+        <label for="sendMessage">Message to send:</label>
+        <input id="sendMessage" disabled />
+        <button id="sendButton" type="submit" disabled>Send</button>
+        <button id="closeButton" disabled>Close Socket</button>
+    </div>
 
-    <el-col :sm="24" slot="header">        
-        <el-button v-on:click="dialogVisible = true">filter</el-button>
-        <el-button-group>
-            <el-button icon="el-icon-arrow-left"></el-button>
-            <el-button><i class="el-icon-arrow-right el-icon-right"></i></el-button>
-        </el-button-group>
-        <el-select v-model="currentPage" style="width:110px;">
-            <el-option                
-                v-for="page in pages"
-                :key="page"                
-                :label="getPageName(page)"
-                :value="page">
-            </el-option>
-        </el-select>
-        <el-dialog
-            title="filter"
-            v-bind:visible.sync="dialogVisible"
-            width="50%">      
-            <el-tabs type="border-card">
-                <el-tab-pane label="filter">
-                    <el-form label-width="100px">
-                        <el-form-item label="id">                                                
-                            <el-input-number v-model="filter.id"></el-input-number>
-                        </el-form-item>                
-                        <el-form-item label="like name">
-                            <el-input v-model="filter.name"></el-input>
-                        </el-form-item>       
-                    </el-form>
-                </el-tab-pane>
-                <el-tab-pane label="sort">                        
-                </el-tab-pane>
-            </el-tabs>               
-            <template slot="footer">                                     
-                <el-button v-on:click="dialogVisible = false">cancel</el-button>
-                <el-button v-on:click="clearFilter">clear</el-button>
-                <el-button type="primary" v-on:click="fetchItems">execute</el-button>       
-            </template>
-        </el-dialog>
-        <el-button type="primary" v-on:click="createNew">new</el-button>
-    </el-col>
-
-    <el-col :sm="8" slot="list">
-        <el-tabs type="border-card">
-            <el-tab-pane label="items">
-                <el-table
-                    :data="items"                    
-                    :height="listHeight"
-                    :empty-text="emptyText">                    
-                    <el-table-column
-                        prop="id"
-                        label="id">
-                        <el-button type="text" slot-scope="scope" v-on:click="edit(scope.row)">{{scope.row.id}}</el-button>       
-                    </el-table-column>
-                    <el-table-column
-                        prop="name"
-                        label="name">                        
-                    </el-table-column>
-                </el-table>   
-            </el-tab-pane>
-        </el-tabs>                   
-    </el-col>
-
-    <!-- <el-col :sm="6" slot="detail">
-        <el-tabs type="border-card">            
-            <el-tab-pane label="item">
-                <div v-bind:style="detailStyle">
-                    <el-form label-width="80px" :model="currentItem" :rules="detailRules" ref="detailForm">
-                        <el-form-item label="id">                    
-                            <span v-if="currentItem.id > 0">{{currentItem.id}}</span>
-                        </el-form-item>                
-                        <el-form-item label="name" prop="name">
-                            <el-input v-model="currentItem.name"></el-input>
-                        </el-form-item>       
-                    </el-form> 
-                </div>
-            </el-tab-pane>
-        </el-tabs>               
-    </el-col> -->
-
-    <el-col :sm="24" slot="footer" style="text-align:right;">        
-        <div class="">
-        <el-button type="danger" v-on:click="remove">remove</el-button>
-        <el-button v-on:click="outputDialog = true">output</el-button>
-        <el-dialog
-            title="output"
-            v-bind:visible.sync="outputDialog"
-            width="50%">            
-            <el-select v-model="selectedLayoutCd">
-                <el-option                
-                    v-for="layoutCode in layoutCodes"
-                    :key="layoutCode"  
-                    :label="getLayoutName(layoutCode)"                                  
-                    :value="layoutCode">
-                </el-option>                
-            </el-select>
-            <template slot="footer">                                     
-                <el-button v-on:click="outputDialog = false">cancel</el-button>
-                <el-button type="primary" v-on:click="outputDialog = false">execute</el-button>       
-            </template>
-        </el-dialog>
-        <el-button type="primary" v-on:click="register">register</el-button>          
-        </div>
-    </el-col>
-</list-detail-frame>
+    <h2>Communication Log</h2>
+    <table style="width: 800px">
+        <thead>
+            <tr>
+                <td style="width: 100px">From</td>
+                <td style="width: 100px">To</td>
+                <td>Data</td>
+            </tr>
+        </thead>
+        <tbody id="commsLog">
+        </tbody>
+    </table> -->

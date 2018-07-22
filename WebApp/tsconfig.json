@@ -1,14 +1,9 @@
 {
   "compilerOptions": {
-    "strict": true,
-    "noImplicitThis": true,
-    "noImplicitAny": false,    
-    "noEmitOnError": true,
-    "removeComments": false,
+    "strict": true,    
     "sourceMap": true,
     "target": "es5",
-    "module": "es2015",
-    "allowSyntheticDefaultImports": true,
+    "module": "esnext",    
     "moduleResolution": "node",    
     "lib": [ "dom", "esnext" ]
   },

@@ -1,208 +1,123 @@
-import Vue from 'vue'
-import ListDetailFrame from '../base/listDetailFrame'
-import sampleHtml from './sample.html'
-import Element, { MessageBox } from 'element-ui'
-import { ElLoadingComponent } from 'element-ui/types/loading'
+import html from './sample.html'
+var mainEl = document.getElementById('main') as Element
 
-(async function () {            
-    Vue.use(Element)
-    
-    class Item {           
-        id:number = 0
-        name:string = ''        
-    }  
+declare class Hello {
+    say():void
+}
 
-    class Filter {
-        id:number = 0
-        name:string = ''
-    }
-    
-    new Vue({        
-        el: '#main',        
-        components: {
-            listDetailFrame: ListDetailFrame                    
-        },
-        template: sampleHtml,        
-        data: {
-            allItems: new Array<Item>(),
-            currentItem: new Item(),
-            items: new Array<Item>(),
-            dialogVisible: false,
-            filter: new Filter(),
-            pages: [ 1, 2, 3],
-            currentPage: 1,
-            outputDialog: false,
-            selectedLayoutCd: '0001',
-            layoutCodes: [ '0001', '0002', '0003' ],
-            listHeight: 0,
-            detailStyle: {
-                height: '0px',
-                overflow: 'auto'
-            },
-            detailRules: {
-                name: [
-                  { required: true, message: 'please input name', trigger: 'blur' }
-                ]
-            },
-            emptyText: 'no data'
-        },   
-        mounted: async function() {               
-            await this.showLoding()            
+(async function () {   
+    mainEl.innerHTML = html
 
-            for (var i = 0; i < 20; i++) {
-                var item = new Item()
-                item.id = i + 101
-                item.name = `name_${item.id}`
-             
-                this.allItems.push(item)
-                this.items.push(item)
-            }
-        },
-        computed: {
-            maxPage: function():number {
-                return this.pages[this.pages.length - 1]
-            }
-        },
-        methods: { 
-            clearFilter: function() {
-                this.filter.id = 0
-                this.filter.name = ''
-            },            
-            resize: function(height: number) {
-                this.listHeight = height
-                this.detailStyle.height = `${height}px`
-            },
-            getPageName: function(page: number): string {
-                return `${page} page`;
-            },
-            getLayoutName: function(layoutCode: number): string {
-                return `${layoutCode} layout`;
-            },
-            createNew: async function() {        
-                await this.showLoding()
+    var hello = new Hello();
+    hello.say();
 
-                this.resetCurrentItem()
-            },
-            edit: async function(item: Item) {     
-                await this.showLoding()
+    // var connectionForm = document.getElementById("connectionForm")
+    // var connectionUrl = document.getElementById("connectionUrl") as HTMLInputElement;
+    // var connectButton = document.getElementById("connectButton") as HTMLButtonElement;
+    // var stateLabel = document.getElementById("stateLabel") as HTMLElement;
+    // var sendMessage = document.getElementById("sendMessage") as HTMLInputElement;
+    // var sendButton = document.getElementById("sendButton") as HTMLButtonElement;
+    // var sendForm = document.getElementById("sendForm");
+    // var commsLog = document.getElementById("commsLog") as HTMLElement;
+    // var closeButton = document.getElementById("closeButton") as HTMLButtonElement;
+    // var socket: WebSocket;
+    // var scheme = document.location.protocol == "https:" ? "wss" : "ws";
+    // var port = document.location.port ? (":" + document.location.port) : "";
+    // connectionUrl.value = scheme + "://" + document.location.hostname + port + "/ws" ;
+    // function updateState() {
+    //     function disable() {
+    //         sendMessage.disabled = true;
+    //         sendButton.disabled = true;
+    //         closeButton.disabled = true;
+    //     }
+    //     function enable() {
+    //         sendMessage.disabled = false;
+    //         sendButton.disabled = false;
+    //         closeButton.disabled = false;
+    //     }
+    //     connectionUrl.disabled = true;
+    //     connectButton.disabled = true;
+    //     if (!socket) {
+    //         disable();
+    //     } else {
+    //         switch (socket.readyState) {
+    //             case WebSocket.CLOSED:
+    //                 stateLabel.innerHTML = "Closed";
+    //                 disable();
+    //                 connectionUrl.disabled = false;
+    //                 connectButton.disabled = false;
+    //                 break;
+    //             case WebSocket.CLOSING:
+    //                 stateLabel.innerHTML = "Closing...";
+    //                 disable();
+    //                 break;
+    //             case WebSocket.CONNECTING:
+    //                 stateLabel.innerHTML = "Connecting...";
+    //                 disable();
+    //                 break;
+    //             case WebSocket.OPEN:
+    //                 stateLabel.innerHTML = "Open";
+    //                 enable();
+    //                 break;
+    //             default:
+    //                 stateLabel.innerHTML = "Unknown WebSocket State: " + htmlEscape(socket.readyState.toString());
+    //                 disable();
+    //                 break;
+    //         }
+    //     }
+    // }
+    // closeButton.onclick = function () {
+    //     if (!socket || socket.readyState != WebSocket.OPEN) {
+    //         alert("socket not connected");
+    //     }
+    //     socket.close(1000, "Closing from client");
+    // }
+    // sendButton.onclick = function () {
+    //     if (!socket || socket.readyState != WebSocket.OPEN) {
+    //         alert("socket not connected");
+    //     }
+    //     var data = sendMessage.value;
+    //     socket.send(data);
+    //     commsLog.innerHTML += '<tr>' +
+    //         '<td class="commslog-client">Client</td>' +
+    //         '<td class="commslog-server">Server</td>' +
+    //         '<td class="commslog-data">' + htmlEscape(data) + '</td>'
+    //     '</tr>';
+    // }
+    // connectButton.onclick = function() {
+    //     stateLabel.innerHTML = "Connecting";
+    //     socket = new WebSocket(connectionUrl.value);
+    //     socket.onopen = function (event) {
+    //         updateState();
+    //         commsLog.innerHTML += '<tr>' +
+    //             '<td colspan="3" class="commslog-data">Connection opened</td>' +
+    //         '</tr>';
+    //     };
+    //     socket.onclose = function (event) {
+    //         updateState();
+    //         commsLog.innerHTML += '<tr>' +
+    //             '<td colspan="3" class="commslog-data">Connection closed. Code: ' + htmlEscape(event.code.toString()) + '. Reason: ' + htmlEscape(event.reason) + '</td>' +
+    //         '</tr>';
+    //     };
+    //     socket.onerror = updateState;
+    //     socket.onmessage = function (event) {
+    //         commsLog.innerHTML += '<tr>' +
+    //             '<td class="commslog-server">Server</td>' +
+    //             '<td class="commslog-client">Client</td>' +
+    //             '<td class="commslog-data">' + htmlEscape(event.data) + '</td>'
+    //         '</tr>';
 
-                this.currentItem.id = item.id
-                this.currentItem.name = item.name
-            },
-            register: async function() {                                  
-                var valid = await (this.$refs.detailForm as any).validate().catch(() => {})
+    //         location.reload();
+    //     };
+    // };
+    // function htmlEscape(str: string) {
+    //     return str
+    //         .replace(/&/g, '&amp;')
+    //         .replace(/"/g, '&quot;')
+    //         .replace(/'/g, '&#39;')
+    //         .replace(/</g, '&lt;')
+    //         .replace(/>/g, '&gt;');
+    // }
 
-                if (!valid) {
-                    this.$notify({
-                        title: 'Error',
-                        message: 'failed.',
-                        type: 'error'
-                    });
-
-                    return;
-                }
-
-                var ok = await this.$confirm('do you want to register?', 'Confirm', {
-                    confirmButtonText: 'OK',
-                    cancelButtonText: 'Cancel',
-                    type: 'info'
-                }).catch(() => {})
-
-                if (ok) {
-                    await this.showLoding()
-
-                    if (this.currentItem.id) {                              
-                        var items = this.allItems.filter(x => x.id == this.currentItem.id)
-                        if (items.length > 0) {
-                            items[0].name = this.currentItem.name
-                        }                              
-                    } else {
-                        var newItem = new Item()
-                        if (this.allItems.length == 0) {
-                            newItem.id = 1
-                        } else {
-                            newItem.id = this.allItems[this.allItems.length - 1].id + 1
-                        }
-                        newItem.name = this.currentItem.name
-                        this.allItems.push(newItem)
-                        this.items.push(newItem)
-                        this.currentItem.id = newItem.id
-                    }
-
-                    this.$notify({
-                        title: 'Success',
-                        message: 'completed.',
-                        type: 'success'
-                    });
-                }
-            },
-            remove: async function() {    
-                var ok = await this.$confirm('do you want to remove?', 'Confirm', {
-                    confirmButtonText: 'OK',
-                    cancelButtonText: 'Cancel',
-                    type: 'warning'
-                }).catch(() => {})
-                
-                if (ok) {
-                    await this.showLoding()
-
-                    var index = -1;
-                    this.allItems.forEach((x, i) => {
-                        if (index != -1) return
-                        if (x.id == this.currentItem.id) index = i
-                    })                                
-                    this.allItems.splice(index, 1)
-                    
-                    index = -1
-                    this.items.forEach((x, i) => {
-                        if (index != -1) return
-                        if (x.id == this.currentItem.id) index = i
-                    })                            
-                    this.items.splice(index, 1)
-                    this.resetCurrentItem()
-
-                    this.$notify({
-                        title: 'Success',
-                        message: 'completed.',
-                        type: 'success'
-                    });
-                }
-            },
-            showLoding: function(): Promise<void> {
-                var loading = this.$loading({
-                    lock: true,
-                    text: 'Loading',
-                    spinner: 'el-icon-loading'                    
-                  });
-
-                return new Promise((reslove, reject) =>{
-                    setTimeout(() => {
-                        loading.close();
-                        reslove();
-                    }, 1000);
-                })
-            },
-            fetchItems: async function() {                
-                this.dialogVisible = false 
-
-                await this.showLoding()
-
-                if (this.filter.id > 0) {
-                    this.items = this.allItems.filter(x => x.id == this.filter.id)                    
-                }
-                else if (this.filter.name) {
-                    this.items = this.allItems.filter(x => x.name.indexOf(this.filter.name) == 0)
-                }
-                else {
-                    this.items = this.allItems.filter(x => true)
-                }
-
-                this.resetCurrentItem()
-            },
-            resetCurrentItem: function() {
-                this.currentItem.id = 0
-                this.currentItem.name = ''
-            }
-        }
-    })
+    // connectButton.click();
 })()
